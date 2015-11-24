@@ -23,9 +23,9 @@
 	<key>CFBundleShortVersionString</key>
 	<string>1.0.1</string>
 	<key>UpdateFeedURL</key>
-	<string>https://raw.githubusercontent.com/guidoferreyra/Glyphs-Scripts/master/ShowNextFont.glyphsReporter/Contents/Info.plist</string>
+	<string>https://raw.githubusercontent.com/guidoferreyra/ShowNextFont/master/showNextFont.glyphsReporter/Contents/Info.plist</string>
 	<key>productPageURL</key>
-	<string>https://github.com/guidoferreyra/Glyphs-Scripts</string>
+	<string>https://github.com/guidoferreyra/ShowNextFont</string>
 	<key>productReleaseNotes</key>
 	<string>Initial Release</string>
 	<key>LSHasLocalizedDisplayName</key>
