@@ -87,13 +87,14 @@ class showNextFont ( NSObject, GlyphsReporterProtocol ):
 		drawingColor = 0.91, 0.32, 0.06, 0.45			
 		# draw path AND components:
 		NSColor.colorWithCalibratedRed_green_blue_alpha_( *drawingColor ).set()
-		#thisBezierPathWithComponent = Layer.copyDecomposedLayer().bezierPath()
-		thisBezierPathWithComponent = nextLayer.copyDecomposedLayer().bezierPath()
-		
+		#thisBezierPathWithComponent = Layer.copyDecomposedLayer().bezierPath
+		try:
+			thisBezierPathWithComponent = nextLayer.copyDecomposedLayer().bezierPath()
+		except:
+ 			thisBezierPathWithComponent = nextLayer.copyDecomposedLayer().bezierPath
+			
 		if thisBezierPathWithComponent:
 			thisBezierPathWithComponent.fill()
-
-		
 
 
 	def drawBackgroundForLayer_( self, Layer ):
