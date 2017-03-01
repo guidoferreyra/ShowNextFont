@@ -26,8 +26,6 @@ class showNextFont(ReporterPlugin):
 				for i, k in enumerate(masters):
 					if thisMaster == masters[i]:
 						activeMasterIndex = i
-
-			self.logToConsole(thisMaster.name)
 			
 			if len(masters) != len(nextFontMasters):
 				nextLayer = nextGlyph.layers[0]
@@ -47,7 +45,7 @@ class showNextFont(ReporterPlugin):
 				thisBezierPathWithComponent.fill()
 
 		except Exception, e:
-			print "Show Next Font need another opened font to work."
+			print "Show Next Font needs another opened font to work."
 
 	def background(self, layer):
 		self.drawNextFont( layer )
@@ -64,25 +62,25 @@ class showNextFont(ReporterPlugin):
 			layer = Glyphs.font.selectedLayers[0]
 			thisFont = layer.parent.parent
 			thisMaster = thisFont.selectedFontMaster
-			thisTab = thisFont.tabs[-1]
 			thisScale = thisFont.currentTab.scale
 			thisViewportX = thisFont.currentTab.viewPort.origin.x
 			thisViewportY = thisFont.currentTab.viewPort.origin.y
+			thisTextCursor = thisFont.currentTab.textCursor
 
-
-			thisMasterIndex = thisTab.masterIndex()
-			thisText = thisTab.text
+			thisMasterIndex = thisFont.currentTab.masterIndex()
+			thisText = thisFont.currentTab.text
 			try:
 				for i in range(len(Glyphs.fonts)):
 					if i != 0:
 						otherFont = Glyphs.fonts[i]
-						otherCurrentTab = otherFont.tabs[-1]
+						otherCurrentTab = otherFont.currentTab
 						if thisMasterIndex <= len(otherFont.masters):
-							otherCurrentTab.setMasterIndex_(thisMasterIndex)
+							otherFont.masterIndex = thisMasterIndex
 						otherCurrentTab.scale = thisScale
 						otherCurrentTab.viewPort.origin.x = thisViewportX
 						otherCurrentTab.viewPort.origin.y = thisViewportY
 						otherCurrentTab.text = thisText
+						otherCurrentTab.textCursor = thisTextCursor
 
 			except Exception, e:
 				Glyphs.showMacroWindow()
