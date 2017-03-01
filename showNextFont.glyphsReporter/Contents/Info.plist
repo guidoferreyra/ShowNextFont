@@ -25,7 +25,7 @@
 	<key>productPageURL</key>
 	<string>https://github.com/guidoferreyra/ShowNextFont</string>
 	<key>productReleaseNotes</key>
-	<string>Added Contextual menu Sync edit views, and cleaned code </string>
+	<string>Added right-click menu to sync edit views.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright, Guido Ferreyra, 2017</string>
 	<key>NSPrincipalClass</key>
