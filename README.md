@@ -4,6 +4,7 @@ This plugin shows in a light orange colour the same glyph of another opened font
 
 ![](screen-nextfont.png)
 
+
 ### How to use:
 Open two fonts and activate the plugin via **View>Show Next Font** menu item.
 The ammount of masters of the fonts should be the same, in case of difference the plugin shows the first master only.
@@ -12,9 +13,6 @@ To sync edit view bwetween fonts, right-click when editing a glyph and choose
 "Sync edit views".
 
 ![](screen-nextfont2.png)
-
-
-In edit view, under right-click menu for Sync edit views between fonts.
 
 ### Installation:
 Download the plugin, open it and restart glyphs.
