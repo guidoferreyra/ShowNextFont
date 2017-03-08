@@ -17,15 +17,15 @@
 	<key>CFBundlePackageType</key>
 	<string>BNDL</string>
 	<key>CFBundleVersion</key>
-	<string>3</string>
+	<string>4</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.3.0</string>
+	<string>1.4.0</string>
 	<key>UpdateFeedURL</key>
 	<string>https://raw.githubusercontent.com/guidoferreyra/ShowNextFont/master/showNextFont.glyphsReporter/Contents/Info.plist</string>
 	<key>productPageURL</key>
 	<string>https://github.com/guidoferreyra/ShowNextFont</string>
 	<key>productReleaseNotes</key>
-	<string>Added right-click menu to sync edit views.</string>
+	<string>Solved bug when trying to sync edit views when no tab open in background font. Thanks @juandelperal</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright, Guido Ferreyra, 2017</string>
 	<key>NSPrincipalClass</key>

@@ -45,7 +45,7 @@ class showNextFont(ReporterPlugin):
 				thisBezierPathWithComponent.fill()
 
 		except Exception, e:
-			print "Show Next Font needs another opened font to work."
+			pass
 
 	def background(self, layer):
 		self.drawNextFont( layer )
@@ -73,7 +73,12 @@ class showNextFont(ReporterPlugin):
 				for i in range(len(Glyphs.fonts)):
 					if i != 0:
 						otherFont = Glyphs.fonts[i]
-						otherCurrentTab = otherFont.currentTab
+						if len(otherFont.tabs) != 0:
+							otherCurrentTab = otherFont.currentTab
+						else:
+							otherFont.newTab('')
+							otherCurrentTab = otherFont.currentTab
+
 						if thisMasterIndex <= len(otherFont.masters):
 							otherFont.masterIndex = thisMasterIndex
 						otherCurrentTab.scale = thisScale
