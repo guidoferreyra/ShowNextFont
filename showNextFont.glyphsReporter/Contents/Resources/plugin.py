@@ -73,11 +73,9 @@ class showNextFont(ReporterPlugin):
 				for i in range(len(Glyphs.fonts)):
 					if i != 0:
 						otherFont = Glyphs.fonts[i]
-						if len(otherFont.tabs) != 0:
-							otherCurrentTab = otherFont.currentTab
-						else:
-							otherFont.newTab('')
-							otherCurrentTab = otherFont.currentTab
+						
+						otherFont.newTab('')
+						otherCurrentTab = otherFont.currentTab
 
 						if thisMasterIndex <= len(otherFont.masters):
 							otherFont.masterIndex = thisMasterIndex
