@@ -2,6 +2,7 @@
 
 
 from GlyphsApp.plugins import *
+from GlyphsApp import *
 
 class showNextFont(ReporterPlugin):
 
