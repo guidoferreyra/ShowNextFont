@@ -8,6 +8,9 @@ class showNextFont(ReporterPlugin):
 
 	def settings(self):
 		self.menuName = Glyphs.localize({'en': u'Next Font'})
+
+	# default centering setting:
+		Glyphs.registerDefault("com.guidoferreyra.showNextFont.fill", 0)
 	
 	def drawNextFont( self, layer ):
 		try:
@@ -37,13 +40,22 @@ class showNextFont(ReporterPlugin):
 			# draw path AND components:
 			NSColor.colorWithCalibratedRed_green_blue_alpha_( *drawingColor ).set()
 			#thisBezierPathWithComponent = Layer.copyDecomposedLayer().bezierPath
+			
 			try:
 				thisBezierPathWithComponent = nextLayer.copyDecomposedLayer().bezierPath()
 			except:
 	 			thisBezierPathWithComponent = nextLayer.copyDecomposedLayer().bezierPath
-				
+			
 			if thisBezierPathWithComponent:
-				thisBezierPathWithComponent.fill()
+				print Glyphs.defaults["com.guidoferreyra.showNextFont.fill"]
+				if Glyphs.defaults["com.guidoferreyra.showNextFont.fill"]:
+					thisBezierPathWithComponent.fill()
+				else:
+					drawingColor = 0.91, 0.32, 0.06, 0.9
+					NSColor.colorWithCalibratedRed_green_blue_alpha_( *drawingColor ).set()
+					thisBezierPathWithComponent.setLineWidth_(0)
+					thisBezierPathWithComponent.stroke()
+
 
 		except Exception, e:
 			pass
@@ -99,12 +111,34 @@ class showNextFont(ReporterPlugin):
 		# Empty list of context menu items
 		contextMenus = []
 
+		if not Glyphs.defaults["com.guidoferreyra.showNextFont.fill"]:
+			contextMenus.append(
+				{
+					'name': Glyphs.localize({
+						'en': u'Fill next font'
+					}), 'action': self.toggleFill
+				},
+			)
+		else:
+			contextMenus.append(
+				{
+					'name': Glyphs.localize({
+						'en': u'Outline next font'
+					}), 'action': self.toggleFill
+				},
+			)
+
 		# Execute only if layers are actually selected
 		if Glyphs.font.selectedLayers:
 			layer = Glyphs.font.selectedLayers[0]
-		
+	
 			contextMenus.append({'name': Glyphs.localize({'en': u'Sync edit views'}), 'action': self.syncViews})
 
 		# Return list of context menu items
 		return contextMenus
+
+	def toggleFill(self):
+		Glyphs.defaults["com.guidoferreyra.showNextFont.fill"] = not Glyphs.defaults["com.guidoferreyra.showNextFont.fill"]
+		
+
 		
