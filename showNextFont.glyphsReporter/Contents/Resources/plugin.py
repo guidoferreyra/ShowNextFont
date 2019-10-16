@@ -47,7 +47,6 @@ class showNextFont(ReporterPlugin):
 	 			thisBezierPathWithComponent = nextLayer.copyDecomposedLayer().bezierPath
 			
 			if thisBezierPathWithComponent:
-				print Glyphs.defaults["com.guidoferreyra.showNextFont.fill"]
 				if Glyphs.defaults["com.guidoferreyra.showNextFont.fill"]:
 					thisBezierPathWithComponent.fill()
 				else:
@@ -64,13 +63,13 @@ class showNextFont(ReporterPlugin):
 		self.drawNextFont( layer )
 		
 
-	def inactiveLayers(self, layer):
+	def inactiveLayerBackground(self, layer):
 		self.drawNextFont( layer )
 
 	def needsExtraMainOutlineDrawingForInactiveLayer_(self, layer):
 		return True
 	
-	def syncViews(self):
+	def syncViews(self, layer):
 		try:
 			layer = Glyphs.font.selectedLayers[0]
 			thisFont = layer.parent.parent
@@ -80,7 +79,7 @@ class showNextFont(ReporterPlugin):
 			thisViewportY = thisFont.currentTab.viewPort.origin.y
 			thisTextCursor = thisFont.currentTab.textCursor
 
-			thisMasterIndex = thisFont.currentTab.masterIndex()
+			thisMasterIndex = thisFont.masterIndex
 			thisText = thisFont.currentTab.text
 			try:
 				for i in range(len(Glyphs.fonts)):
@@ -137,8 +136,7 @@ class showNextFont(ReporterPlugin):
 		# Return list of context menu items
 		return contextMenus
 
-	def toggleFill(self):
+	def toggleFill(self):	
 		Glyphs.defaults["com.guidoferreyra.showNextFont.fill"] = not Glyphs.defaults["com.guidoferreyra.showNextFont.fill"]
-		
 
 		
