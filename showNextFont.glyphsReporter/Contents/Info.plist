@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
@@ -17,15 +17,15 @@
 	<key>CFBundlePackageType</key>
 	<string>BNDL</string>
 	<key>CFBundleVersion</key>
-	<string>4</string>
+	<string>5</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.6.1</string>
+	<string>1.7</string>
 	<key>UpdateFeedURL</key>
 	<string>https://raw.githubusercontent.com/guidoferreyra/ShowNextFont/master/showNextFont.glyphsReporter/Contents/Info.plist</string>
 	<key>productPageURL</key>
 	<string>https://github.com/guidoferreyra/ShowNextFont</string>
 	<key>productReleaseNotes</key>
-	<string>Fixed bug and improved compatibility</string>
+	<string>Updated for Glyphs 2/3 compatibility </string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright, Guido Ferreyra, 2017</string>
 	<key>NSPrincipalClass</key>

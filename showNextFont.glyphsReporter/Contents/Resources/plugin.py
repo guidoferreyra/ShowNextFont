@@ -1,17 +1,31 @@
 # encoding: utf-8
 
+###########################################################################################################
+#
+#
+#	Reporter Plugin
+#
+#	Read the docs:
+#	https://github.com/schriftgestalt/GlyphsSDK/tree/master/Python%20Templates/Reporter
+#
+#
+###########################################################################################################
 
-from GlyphsApp.plugins import *
+from __future__ import division, print_function, unicode_literals
+import objc
 from GlyphsApp import *
+from GlyphsApp.plugins import *
 
 class showNextFont(ReporterPlugin):
 
+	@objc.python_method
 	def settings(self):
 		self.menuName = Glyphs.localize({'en': u'Next Font'})
-
-	# default centering setting:
-		Glyphs.registerDefault("com.guidoferreyra.showNextFont.fill", 0)
 	
+		# default fill setting:
+		Glyphs.registerDefault("com.guidoferreyra.showNextFont.fill", 0)
+
+	@objc.python_method
 	def drawNextFont( self, layer ):
 		try:
 			thisGlyph = layer.parent
@@ -22,14 +36,7 @@ class showNextFont(ReporterPlugin):
 			nextFontMasters = nextFont.masters
 			nextGlyph = nextFont.glyphs[thisGlyph.name]
 
-			try:
-				# Glyphs 2 (Python 2.7)
-				activeMasterIndex = masters.index(thisMaster)
-			except:
-				# Glyphs 1 (Python 2.6)
-				for i, k in enumerate(masters):
-					if thisMaster == masters[i]:
-						activeMasterIndex = i
+			activeMasterIndex = masters.index(thisMaster)
 			
 			if len(masters) != len(nextFontMasters):
 				nextLayer = nextGlyph.layers[0]
@@ -55,21 +62,22 @@ class showNextFont(ReporterPlugin):
 					thisBezierPathWithComponent.setLineWidth_(0)
 					thisBezierPathWithComponent.stroke()
 
+		except Exception as e:
+			print (e)
 
-		except Exception, e:
-			pass
-
+	@objc.python_method
 	def background(self, layer):
 		self.drawNextFont( layer )
-		
-
+	
+	@objc.python_method
 	def inactiveLayerBackground(self, layer):
 		self.drawNextFont( layer )
-
+	
+	@objc.python_method
 	def needsExtraMainOutlineDrawingForInactiveLayer_(self, layer):
 		return True
-	
-	def syncViews(self, layer):
+
+	def syncViews_(self, layer):
 		try:
 			layer = Glyphs.font.selectedLayers[0]
 			thisFont = layer.parent.parent
@@ -96,15 +104,15 @@ class showNextFont(ReporterPlugin):
 						otherCurrentTab.viewPort.origin.y = thisViewportY
 						otherCurrentTab.text = thisText
 						otherCurrentTab.textCursor = thisTextCursor
-
-			except Exception, e:
+			except Exception as e:
 				Glyphs.showMacroWindow()
-				print "Sync Edit views Error (Inside Loop): %s" % e
+				print ("Sync Edit views Error (Inside Loop): %s" % e)
 
-		except Exception, e:
+		except Exception as e:
 			Glyphs.showMacroWindow()
-			print "Sync Edit views Error: %s" % e
-
+			print ("Sync Edit views Error: %s" % e)
+		
+	@objc.python_method
 	def conditionalContextMenus(self):
 
 		# Empty list of context menu items
@@ -130,13 +138,16 @@ class showNextFont(ReporterPlugin):
 		# Execute only if layers are actually selected
 		if Glyphs.font.selectedLayers:
 			layer = Glyphs.font.selectedLayers[0]
-	
-			contextMenus.append({'name': Glyphs.localize({'en': u'Sync edit views'}), 'action': self.syncViews})
+			
+			contextMenus.append({'name': Glyphs.localize({'en': u'Sync edit views'}), 'action': self.syncViews_})
 
 		# Return list of context menu items
 		return contextMenus
-
+	
 	def toggleFill(self):	
 		Glyphs.defaults["com.guidoferreyra.showNextFont.fill"] = not Glyphs.defaults["com.guidoferreyra.showNextFont.fill"]
 
-		
+	@objc.python_method
+	def __file__(self):
+		"""Please leave this method unchanged"""
+		return __file__
