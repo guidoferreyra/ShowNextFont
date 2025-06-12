@@ -12,17 +12,18 @@
 ###########################################################################################################
 
 from __future__ import division, print_function, unicode_literals
+
 import objc
+from Cocoa import NSAffineTransform, NSColor
 from GlyphsApp import Glyphs
 from GlyphsApp.plugins import ReporterPlugin
-from Cocoa import NSColor
 
 
 class showNextFont(ReporterPlugin):
 
 	@objc.python_method
 	def settings(self):
-		self.menuName = Glyphs.localize({'en': u'Next Font'})
+		self.menuName = Glyphs.localize({"en": "Next Font"})
 
 		# default fill setting:
 		Glyphs.registerDefault("com.guidoferreyra.showNextFont.fill", 0)
@@ -51,16 +52,27 @@ class showNextFont(ReporterPlugin):
 			# thisBezierPathWithComponent = Layer.copyDecomposedLayer().bezierPath
 
 			try:
-				thisBezierPathWithComponent = nextLayer.copyDecomposedLayer().bezierPath()
-			except:
+				thisBezierPathWithComponent = (
+					nextLayer.copyDecomposedLayer().bezierPath()
+				)
+			except:  # noqa: E722
 				thisBezierPathWithComponent = nextLayer.copyDecomposedLayer().bezierPath
+
+			if thisFont.upm != nextFont.upm:
+				transform = NSAffineTransform.new()
+				transform.scaleBy_(thisFont.upm / nextFont.upm)
+				thisBezierPathWithComponent = transform.transformBezierPath_(
+					thisBezierPathWithComponent
+				)
 
 			if thisBezierPathWithComponent:
 				if Glyphs.defaults["com.guidoferreyra.showNextFont.fill"]:
 					thisBezierPathWithComponent.fill()
 				else:
 					drawingColor = 0.91, 0.32, 0.06, 0.9
-					NSColor.colorWithCalibratedRed_green_blue_alpha_(*drawingColor).set()
+					NSColor.colorWithCalibratedRed_green_blue_alpha_(
+						*drawingColor
+					).set()
 					thisBezierPathWithComponent.setLineWidth_(0)
 					thisBezierPathWithComponent.stroke()
 
@@ -96,7 +108,7 @@ class showNextFont(ReporterPlugin):
 					if i != 0:
 						otherFont = Glyphs.fonts[i]
 
-						otherFont.newTab('')
+						otherFont.newTab("")
 						otherCurrentTab = otherFont.currentTab
 
 						if thisMasterIndex <= len(otherFont.masters):
@@ -123,30 +135,35 @@ class showNextFont(ReporterPlugin):
 		if not Glyphs.defaults["com.guidoferreyra.showNextFont.fill"]:
 			contextMenus.append(
 				{
-					'name': Glyphs.localize({
-						'en': u'Fill next font'
-					}), 'action': self.toggleFill
+					"name": Glyphs.localize({"en": "Fill next font"}),
+					"action": self.toggleFill,
 				},
 			)
 		else:
 			contextMenus.append(
 				{
-					'name': Glyphs.localize({
-						'en': u'Outline next font'
-					}), 'action': self.toggleFill
+					"name": Glyphs.localize({"en": "Outline next font"}),
+					"action": self.toggleFill,
 				},
 			)
 
 		# Execute only if layers are actually selected
 		if Glyphs.font.selectedLayers:
 			# layer = Glyphs.font.selectedLayers[0]
-			contextMenus.append({'name': Glyphs.localize({'en': u'Sync edit views'}), 'action': self.syncViews_})
+			contextMenus.append(
+				{
+					"name": Glyphs.localize({"en": "Sync edit views"}),
+					"action": self.syncViews_,
+				}
+			)
 
 		# Return list of context menu items
 		return contextMenus
 
 	def toggleFill(self):
-		Glyphs.defaults["com.guidoferreyra.showNextFont.fill"] = not Glyphs.defaults["com.guidoferreyra.showNextFont.fill"]
+		Glyphs.defaults["com.guidoferreyra.showNextFont.fill"] = not Glyphs.defaults[
+			"com.guidoferreyra.showNextFont.fill"
+		]
 
 	@objc.python_method
 	def __file__(self):

@@ -13,15 +13,15 @@
 	<key>CFBundleName</key>
 	<string>showNextFont</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.7.1</string>
+	<string>1.7.2</string>
 	<key>CFBundleVersion</key>
-	<string>8</string>
+	<string>9</string>
 	<key>UpdateFeedURL</key>
 	<string>https://raw.githubusercontent.com/guidoferreyra/ShowNextFont/master/showNextFont.glyphsReporter/Contents/Info.plist</string>
 	<key>productPageURL</key>
 	<string>https://github.com/guidoferreyra/ShowNextFont</string>
 	<key>productReleaseNotes</key>
-	<string>Update for Glyphs 3, Big Sur and M1 compatibility.</string>
+	<string>Scale outlines when fonts have different units per em.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright, Guido Ferreyra, 2017</string>
 	<key>NSPrincipalClass</key>
