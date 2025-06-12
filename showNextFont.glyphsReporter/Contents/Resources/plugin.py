@@ -14,7 +14,7 @@
 from __future__ import division, print_function, unicode_literals
 
 import objc
-from Cocoa import NSColor
+from Cocoa import NSAffineTransform, NSColor
 from GlyphsApp import Glyphs
 from GlyphsApp.plugins import ReporterPlugin
 
@@ -57,6 +57,13 @@ class showNextFont(ReporterPlugin):
                 )
             except:  # noqa: E722
                 thisBezierPathWithComponent = nextLayer.copyDecomposedLayer().bezierPath
+
+            if thisFont.upm != nextFont.upm:
+                transform = NSAffineTransform.new()
+                transform.scaleBy_(thisFont.upm / nextFont.upm)
+                thisBezierPathWithComponent = transform.transformBezierPath_(
+                    thisBezierPathWithComponent
+                )
 
             if thisBezierPathWithComponent:
                 if Glyphs.defaults["com.guidoferreyra.showNextFont.fill"]:
