@@ -21,151 +21,151 @@ from GlyphsApp.plugins import ReporterPlugin
 
 class showNextFont(ReporterPlugin):
 
-    @objc.python_method
-    def settings(self):
-        self.menuName = Glyphs.localize({"en": "Next Font"})
+	@objc.python_method
+	def settings(self):
+		self.menuName = Glyphs.localize({"en": "Next Font"})
 
-        # default fill setting:
-        Glyphs.registerDefault("com.guidoferreyra.showNextFont.fill", 0)
+		# default fill setting:
+		Glyphs.registerDefault("com.guidoferreyra.showNextFont.fill", 0)
 
-    @objc.python_method
-    def drawNextFont(self, layer):
-        try:
-            thisGlyph = layer.parent
-            thisFont = thisGlyph.parent
-            thisMaster = thisFont.selectedFontMaster
-            masters = thisFont.masters
-            nextFont = Glyphs.fonts[1]
-            nextFontMasters = nextFont.masters
-            nextGlyph = nextFont.glyphs[thisGlyph.name]
+	@objc.python_method
+	def drawNextFont(self, layer):
+		try:
+			thisGlyph = layer.parent
+			thisFont = thisGlyph.parent
+			thisMaster = thisFont.selectedFontMaster
+			masters = thisFont.masters
+			nextFont = Glyphs.fonts[1]
+			nextFontMasters = nextFont.masters
+			nextGlyph = nextFont.glyphs[thisGlyph.name]
 
-            activeMasterIndex = masters.index(thisMaster)
+			activeMasterIndex = masters.index(thisMaster)
 
-            if len(masters) != len(nextFontMasters):
-                nextLayer = nextGlyph.layers[0]
-            else:
-                nextLayer = nextGlyph.layers[activeMasterIndex]
+			if len(masters) != len(nextFontMasters):
+				nextLayer = nextGlyph.layers[0]
+			else:
+				nextLayer = nextGlyph.layers[activeMasterIndex]
 
-            drawingColor = 0.91, 0.32, 0.06, 0.45
-            # draw path AND components:
-            NSColor.colorWithCalibratedRed_green_blue_alpha_(*drawingColor).set()
-            # thisBezierPathWithComponent = Layer.copyDecomposedLayer().bezierPath
+			drawingColor = 0.91, 0.32, 0.06, 0.45
+			# draw path AND components:
+			NSColor.colorWithCalibratedRed_green_blue_alpha_(*drawingColor).set()
+			# thisBezierPathWithComponent = Layer.copyDecomposedLayer().bezierPath
 
-            try:
-                thisBezierPathWithComponent = (
-                    nextLayer.copyDecomposedLayer().bezierPath()
-                )
-            except:  # noqa: E722
-                thisBezierPathWithComponent = nextLayer.copyDecomposedLayer().bezierPath
+			try:
+				thisBezierPathWithComponent = (
+					nextLayer.copyDecomposedLayer().bezierPath()
+				)
+			except:  # noqa: E722
+				thisBezierPathWithComponent = nextLayer.copyDecomposedLayer().bezierPath
 
-            if thisFont.upm != nextFont.upm:
-                transform = NSAffineTransform.new()
-                transform.scaleBy_(thisFont.upm / nextFont.upm)
-                thisBezierPathWithComponent = transform.transformBezierPath_(
-                    thisBezierPathWithComponent
-                )
+			if thisFont.upm != nextFont.upm:
+				transform = NSAffineTransform.new()
+				transform.scaleBy_(thisFont.upm / nextFont.upm)
+				thisBezierPathWithComponent = transform.transformBezierPath_(
+					thisBezierPathWithComponent
+				)
 
-            if thisBezierPathWithComponent:
-                if Glyphs.defaults["com.guidoferreyra.showNextFont.fill"]:
-                    thisBezierPathWithComponent.fill()
-                else:
-                    drawingColor = 0.91, 0.32, 0.06, 0.9
-                    NSColor.colorWithCalibratedRed_green_blue_alpha_(
-                        *drawingColor
-                    ).set()
-                    thisBezierPathWithComponent.setLineWidth_(0)
-                    thisBezierPathWithComponent.stroke()
+			if thisBezierPathWithComponent:
+				if Glyphs.defaults["com.guidoferreyra.showNextFont.fill"]:
+					thisBezierPathWithComponent.fill()
+				else:
+					drawingColor = 0.91, 0.32, 0.06, 0.9
+					NSColor.colorWithCalibratedRed_green_blue_alpha_(
+						*drawingColor
+					).set()
+					thisBezierPathWithComponent.setLineWidth_(0)
+					thisBezierPathWithComponent.stroke()
 
-        except Exception as e:
-            print(e)
+		except Exception as e:
+			print(e)
 
-    @objc.python_method
-    def background(self, layer):
-        self.drawNextFont(layer)
+	@objc.python_method
+	def background(self, layer):
+		self.drawNextFont(layer)
 
-    @objc.python_method
-    def inactiveLayerBackground(self, layer):
-        self.drawNextFont(layer)
+	@objc.python_method
+	def inactiveLayerBackground(self, layer):
+		self.drawNextFont(layer)
 
-    @objc.python_method
-    def needsExtraMainOutlineDrawingForInactiveLayer_(self, layer):
-        return True
+	@objc.python_method
+	def needsExtraMainOutlineDrawingForInactiveLayer_(self, layer):
+		return True
 
-    def syncViews_(self, layer):
-        try:
-            layer = Glyphs.font.selectedLayers[0]
-            thisFont = layer.parent.parent
-            # thisMaster = thisFont.selectedFontMaster
-            thisScale = thisFont.currentTab.scale
-            thisViewportX = thisFont.currentTab.viewPort.origin.x
-            thisViewportY = thisFont.currentTab.viewPort.origin.y
-            thisTextCursor = thisFont.currentTab.textCursor
+	def syncViews_(self, layer):
+		try:
+			layer = Glyphs.font.selectedLayers[0]
+			thisFont = layer.parent.parent
+			# thisMaster = thisFont.selectedFontMaster
+			thisScale = thisFont.currentTab.scale
+			thisViewportX = thisFont.currentTab.viewPort.origin.x
+			thisViewportY = thisFont.currentTab.viewPort.origin.y
+			thisTextCursor = thisFont.currentTab.textCursor
 
-            thisMasterIndex = thisFont.masterIndex
-            thisText = thisFont.currentTab.text
-            try:
-                for i in range(len(Glyphs.fonts)):
-                    if i != 0:
-                        otherFont = Glyphs.fonts[i]
+			thisMasterIndex = thisFont.masterIndex
+			thisText = thisFont.currentTab.text
+			try:
+				for i in range(len(Glyphs.fonts)):
+					if i != 0:
+						otherFont = Glyphs.fonts[i]
 
-                        otherFont.newTab("")
-                        otherCurrentTab = otherFont.currentTab
+						otherFont.newTab("")
+						otherCurrentTab = otherFont.currentTab
 
-                        if thisMasterIndex <= len(otherFont.masters):
-                            otherFont.masterIndex = thisMasterIndex
-                        otherCurrentTab.scale = thisScale
-                        otherCurrentTab.viewPort.origin.x = thisViewportX
-                        otherCurrentTab.viewPort.origin.y = thisViewportY
-                        otherCurrentTab.text = thisText
-                        otherCurrentTab.textCursor = thisTextCursor
-            except Exception as e:
-                Glyphs.showMacroWindow()
-                print("Sync Edit views Error (Inside Loop): %s" % e)
+						if thisMasterIndex <= len(otherFont.masters):
+							otherFont.masterIndex = thisMasterIndex
+						otherCurrentTab.scale = thisScale
+						otherCurrentTab.viewPort.origin.x = thisViewportX
+						otherCurrentTab.viewPort.origin.y = thisViewportY
+						otherCurrentTab.text = thisText
+						otherCurrentTab.textCursor = thisTextCursor
+			except Exception as e:
+				Glyphs.showMacroWindow()
+				print("Sync Edit views Error (Inside Loop): %s" % e)
 
-        except Exception as e:
-            Glyphs.showMacroWindow()
-            print("Sync Edit views Error: %s" % e)
+		except Exception as e:
+			Glyphs.showMacroWindow()
+			print("Sync Edit views Error: %s" % e)
 
-    @objc.python_method
-    def conditionalContextMenus(self):
+	@objc.python_method
+	def conditionalContextMenus(self):
 
-        # Empty list of context menu items
-        contextMenus = []
+		# Empty list of context menu items
+		contextMenus = []
 
-        if not Glyphs.defaults["com.guidoferreyra.showNextFont.fill"]:
-            contextMenus.append(
-                {
-                    "name": Glyphs.localize({"en": "Fill next font"}),
-                    "action": self.toggleFill,
-                },
-            )
-        else:
-            contextMenus.append(
-                {
-                    "name": Glyphs.localize({"en": "Outline next font"}),
-                    "action": self.toggleFill,
-                },
-            )
+		if not Glyphs.defaults["com.guidoferreyra.showNextFont.fill"]:
+			contextMenus.append(
+				{
+					"name": Glyphs.localize({"en": "Fill next font"}),
+					"action": self.toggleFill,
+				},
+			)
+		else:
+			contextMenus.append(
+				{
+					"name": Glyphs.localize({"en": "Outline next font"}),
+					"action": self.toggleFill,
+				},
+			)
 
-        # Execute only if layers are actually selected
-        if Glyphs.font.selectedLayers:
-            # layer = Glyphs.font.selectedLayers[0]
-            contextMenus.append(
-                {
-                    "name": Glyphs.localize({"en": "Sync edit views"}),
-                    "action": self.syncViews_,
-                }
-            )
+		# Execute only if layers are actually selected
+		if Glyphs.font.selectedLayers:
+			# layer = Glyphs.font.selectedLayers[0]
+			contextMenus.append(
+				{
+					"name": Glyphs.localize({"en": "Sync edit views"}),
+					"action": self.syncViews_,
+				}
+			)
 
-        # Return list of context menu items
-        return contextMenus
+		# Return list of context menu items
+		return contextMenus
 
-    def toggleFill(self):
-        Glyphs.defaults["com.guidoferreyra.showNextFont.fill"] = not Glyphs.defaults[
-            "com.guidoferreyra.showNextFont.fill"
-        ]
+	def toggleFill(self):
+		Glyphs.defaults["com.guidoferreyra.showNextFont.fill"] = not Glyphs.defaults[
+			"com.guidoferreyra.showNextFont.fill"
+		]
 
-    @objc.python_method
-    def __file__(self):
-        """Please leave this method unchanged"""
-        return __file__
+	@objc.python_method
+	def __file__(self):
+		"""Please leave this method unchanged"""
+		return __file__
