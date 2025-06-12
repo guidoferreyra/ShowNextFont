@@ -55,7 +55,7 @@ class showNextFont(ReporterPlugin):
                 thisBezierPathWithComponent = (
                     nextLayer.copyDecomposedLayer().bezierPath()
                 )
-            except:
+            except:  # noqa: E722
                 thisBezierPathWithComponent = nextLayer.copyDecomposedLayer().bezierPath
 
             if thisBezierPathWithComponent:
