@@ -9,9 +9,10 @@ This plugin shows in a light orange colour the same glyph of another opened font
 Open two fonts and activate the plugin via **View>Show Next Font** menu item.
 The ammount of masters of the fonts should be the same, in case of difference the plugin shows the first master only.
 
-Under the right click menu you can find a menu item to swap next font view between outline and fill mode.
-
-Also under the same menu you can sync edit views across open fonts via the "Sync edit views" item.
+Under the right click menu you can find a menu items for:
+- swap next font view between outline and fill mode.
+- show/hide next font nodes and handles
+- sync edit views across open fonts.
 
 ![](screen-nextfont2.png)
 
@@ -20,7 +21,7 @@ Also under the same menu you can sync edit views across open fonts via the "Sync
 For better update handling install the plugin via the **Window > Plugin Manager** inside Glyphs App and restart the app.
 
 ### Note:
-This plugin was inspired by the Show Next Master plugin from Mark Frömberg (mirque.de).
+This plugin was inspired by the Show Next Master plugin from Mark Frömberg (markfromberg.com) and includes more recent contributions from @jenskutilek, @schriftgestalt, @mekkablue, @Mark2Mark  
 
 ### Donate:
 If this plugin is helpful for you, maybe you can consider making a donation ;)
