@@ -32,6 +32,9 @@ class showNextFont(ReporterPlugin):
 
     @objc.python_method
     def drawNextFont(self, layer):
+        if len(Glyphs.fonts) < 2:
+            return
+
         try:
             thisGlyph = layer.parent
             thisFont = thisGlyph.parent
@@ -40,6 +43,9 @@ class showNextFont(ReporterPlugin):
             nextFont = Glyphs.fonts[1]
             nextFontMasters = nextFont.masters
             nextGlyph = nextFont.glyphs[thisGlyph.name]
+            if nextGlyph is None:
+                # Glyph is missing in next font
+                return
 
             activeMasterIndex = masters.index(thisMaster)
 
