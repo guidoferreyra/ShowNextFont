@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 ###########################################################################################################
 #
 #
@@ -11,16 +9,13 @@
 #
 ###########################################################################################################
 
-from __future__ import division, print_function, unicode_literals
-
 import objc
-from Cocoa import NSAffineTransform, NSColor, NSBezierPath, NSRect
-from GlyphsApp import Glyphs, OFFCURVE
+from AppKit import NSAffineTransform, NSBezierPath, NSColor, NSRect
+from GlyphsApp import OFFCURVE, Glyphs
 from GlyphsApp.plugins import ReporterPlugin
 
 
 class showNextFont(ReporterPlugin):
-
     @objc.python_method
     def settings(self):
         self.menuName = Glyphs.localize({"en": "Next Font"})
@@ -305,9 +300,9 @@ class showNextFont(ReporterPlugin):
         ]
 
     def toggleNodes(self):
-        Glyphs.defaults["com.guidoferreyra.showNextFont.showNodes"] = (
-            not Glyphs.defaults["com.guidoferreyra.showNextFont.showNodes"]
-        )
+        Glyphs.defaults[
+            "com.guidoferreyra.showNextFont.showNodes"
+        ] = not Glyphs.defaults["com.guidoferreyra.showNextFont.showNodes"]
 
     @objc.python_method
     def __file__(self):
