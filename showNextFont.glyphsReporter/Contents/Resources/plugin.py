@@ -9,11 +9,13 @@
 #
 ###########################################################################################################
 
+from math import radians
 from typing import TYPE_CHECKING, Any
 
 import objc
 from AppKit import NSAffineTransform, NSBezierPath, NSColor, NSKeyedArchiver, NSRect
 from GlyphsApp import OFFCURVE, Glyphs
+from GlyphsApp.drawingTools import restore, save, scale, skew
 from GlyphsApp.plugins import ReporterPlugin
 
 if TYPE_CHECKING:
@@ -45,6 +47,7 @@ class showNextFont(ReporterPlugin):
                 "comGuidoferreyraShowNextFontShowSidebearings": False,
                 "comGuidoferreyraShowNextFontSyncEditViews": False,
                 "comGuidoferreyraShowNextFontColor": nsc_arch(0.91, 0.32, 0.06, 0.45),
+                "comGuidoferreyraShowNextFontMatchAngle": False,
             }
         )
 
@@ -80,6 +83,11 @@ class showNextFont(ReporterPlugin):
                     "key": "comGuidoferreyraShowNextFontColor",
                     "type": "color",
                 },
+                {
+                    "title": "Match italic angle",
+                    "key": "comGuidoferreyraShowNextFontMatchAngle",
+                    "type": "bool",
+                },
             ],
             "Show Next Font",
         )
@@ -88,6 +96,8 @@ class showNextFont(ReporterPlugin):
     def drawNextFont(self, layer: "GSLayer") -> None:
         if len(Glyphs.fonts) < 2:
             return
+
+        save()
 
         try:
             thisGlyph = layer.parent
@@ -108,61 +118,74 @@ class showNextFont(ReporterPlugin):
             else:
                 nextLayer = nextGlyph.layers[activeMasterIndex]
 
-            scale = thisFont.currentTab.scale
-
-            # draw path AND components:
-            Glyphs.colorDefaults["comGuidoferreyraShowNextFontColor"].set()
+            view_scale = thisFont.currentTab.scale
 
             thisBezierPathWithComponent = nextLayer.completeBezierPath
 
             # Apply UPM scaling if needed
-            scaleFactor = 1.0
+            upm_scale = 1.0
+            tr = NSAffineTransform.alloc().init()
             if thisFont.upm != nextFont.upm:
-                scaleFactor = thisFont.upm / nextFont.upm
-                transform = NSAffineTransform.new()
-                transform.scaleBy_(scaleFactor)
-                thisBezierPathWithComponent = transform.transformBezierPath_(
-                    thisBezierPathWithComponent
-                )
+                upm_scale = thisFont.upm / nextFont.upm
+                tr.scaleXBy_yBy_(upm_scale, upm_scale)
+                tr.concat()
+                # scale(upm_scale)
+                # transform = NSAffineTransform.new()
+                # transform.scaleBy_(upm_scale)
+                # transform.skew(radians(slant))
+                # thisBezierPathWithComponent = transform.transformBezierPath_(
+                #     thisBezierPathWithComponent
+                # )
+            if Glyphs.defaults["comGuidoferreyraShowNextFontMatchAngle"]:
+                slant = layer.italicAngle - nextLayer.italicAngle
+                if abs(slant) > 0.1:
+                    # skew(radians(slant))
+                    half_x_height = nextLayer.master.xHeight / 2
+                    tr.shearXBy_yBy_atCenter_(radians(slant), 0, (0, half_x_height))
+                    tr.concat()
+            # tr.set()
 
             # Draw the main path
             if thisBezierPathWithComponent:
                 if Glyphs.defaults["comGuidoferreyraShowNextFontFill"]:
+                    Glyphs.colorDefaults["comGuidoferreyraShowNextFontColor"].set()
                     thisBezierPathWithComponent.fill()
                 else:
                     Glyphs.colorDefaults[
                         "comGuidoferreyraShowNextFontColor"
                     ].colorWithAlphaComponent_(0.9).set()
-                    thisBezierPathWithComponent.setLineWidth_(0)  # ?
+                    thisBezierPathWithComponent.setLineWidth_(0)
                     thisBezierPathWithComponent.stroke()
 
                 # Draw nodes and handles if enabled
                 if Glyphs.defaults["comGuidoferreyraShowNextFontShowNodes"]:
-                    self.drawNodesAndHandles(nextLayer, scaleFactor, scale)
+                    self.drawNodesAndHandles(nextLayer, upm_scale, view_scale)
 
             if Glyphs.defaults["comGuidoferreyraShowNextFontShowSidebearings"]:
-                self.drawSideBearings(layer, nextLayer, scaleFactor, scale)
+                self.drawSideBearings(layer, nextLayer, upm_scale, view_scale)
 
         except Exception as e:  # noqa: BLE001
             print(e)
+
+        restore()
 
     @objc.python_method
     def drawSideBearings(
         self,
         thisLayer: "GSLayer",
         nextLayer: "GSLayer",
-        scaleFactor: float,
-        scale: float,
+        upm_scale: float,
+        view_scale: float,
     ) -> None:
         try:
-            line_width = 1 / scale
+            line_width = 1 / view_scale
             color = Glyphs.colorDefaults[
                 "comGuidoferreyraShowNextFontColor"
             ].colorWithAlphaComponent_(0.7)
             x0 = 0
-            x1 = nextLayer.width * scaleFactor
-            y0 = thisLayer.descender * scaleFactor
-            y1 = thisLayer.ascender * scaleFactor
+            x1 = nextLayer.width * upm_scale
+            y0 = thisLayer.descender * upm_scale
+            y1 = thisLayer.ascender * upm_scale
             self.drawLine(x0, y0, x0, y1, line_width, color)
             self.drawLine(x1, y0, x1, y1, line_width, color)
         except Exception as e:  # noqa: BLE001
@@ -170,7 +193,7 @@ class showNextFont(ReporterPlugin):
 
     @objc.python_method
     def drawNodesAndHandles(
-        self, nextLayer: "GSLayer", scaleFactor: float, scale: float
+        self, nextLayer: "GSLayer", upm_scale: float, view_scale: float
     ) -> None:
         try:
             oncurveColor = Glyphs.colorDefaults[
@@ -183,21 +206,19 @@ class showNextFont(ReporterPlugin):
                 "comGuidoferreyraShowNextFontColor"
             ].colorWithAlphaComponent_(0.4)
 
-            nodeSize = 8 / scale
-            handleLineWidth = 1 / scale
+            nodeSize = 8 / view_scale
+            handleLineWidth = 1 / view_scale
 
             for path in nextLayer.paths:
                 nodes = path.nodes
                 if not nodes:
                     continue
 
-                self.drawHandleLines(
-                    nodes, scaleFactor, handleLineWidth, handleLineColor
-                )
+                self.drawHandleLines(nodes, upm_scale, handleLineWidth, handleLineColor)
 
                 for node in nodes:
-                    x = node.position.x * scaleFactor
-                    y = node.position.y * scaleFactor
+                    x = node.position.x * upm_scale
+                    y = node.position.y * upm_scale
 
                     if node.type == OFFCURVE:
                         self.drawNode(x, y, nodeSize * 0.6, offcurveColor)
@@ -209,14 +230,14 @@ class showNextFont(ReporterPlugin):
 
     @objc.python_method
     def drawHandleLines(
-        self, nodes, scaleFactor: float, lineWidth: float, color: NSColor
+        self, nodes, upm_scale: float, lineWidth: float, color: NSColor
     ) -> None:
         try:
             nodeCount = len(nodes)
             for i, node in enumerate(nodes):
                 if node.type == OFFCURVE:
-                    x = node.position.x * scaleFactor
-                    y = node.position.y * scaleFactor
+                    x = node.position.x * upm_scale
+                    y = node.position.y * upm_scale
 
                     prevOnCurve = self.findAdjacentOnCurveNode(nodes, i, -1)
                     nextOnCurve = self.findAdjacentOnCurveNode(nodes, i, 1)
@@ -226,16 +247,16 @@ class showNextFont(ReporterPlugin):
                         nextNode = nodes[nextOnCurve]
 
                         if i < nodeCount - 1 and nodes[i + 1].type == OFFCURVE:
-                            prevX = prevNode.position.x * scaleFactor
-                            prevY = prevNode.position.y * scaleFactor
+                            prevX = prevNode.position.x * upm_scale
+                            prevY = prevNode.position.y * upm_scale
                             self.drawLine(prevX, prevY, x, y, lineWidth, color)
                         elif i > 0 and nodes[i - 1].type == OFFCURVE:
-                            nextX = nextNode.position.x * scaleFactor
-                            nextY = nextNode.position.y * scaleFactor
+                            nextX = nextNode.position.x * upm_scale
+                            nextY = nextNode.position.y * upm_scale
                             self.drawLine(x, y, nextX, nextY, lineWidth, color)
                         else:
-                            nextX = nextNode.position.x * scaleFactor
-                            nextY = nextNode.position.y * scaleFactor
+                            nextX = nextNode.position.x * upm_scale
+                            nextY = nextNode.position.y * upm_scale
                             self.drawLine(x, y, nextX, nextY, lineWidth, color)
         except Exception as e:  # noqa: BLE001
             print(f"Error drawing handle lines: {e}")
@@ -299,7 +320,7 @@ class showNextFont(ReporterPlugin):
             layer = Glyphs.font.selectedLayers[0]
             thisFont = layer.parent.parent
             # thisMaster = thisFont.selectedFontMaster
-            thisScale = thisFont.currentTab.scale
+            view_scale = thisFont.currentTab.scale
             thisViewportX = thisFont.currentTab.viewPort.origin.x
             thisViewportY = thisFont.currentTab.viewPort.origin.y
             thisTextCursor = thisFont.currentTab.textCursor
@@ -316,7 +337,7 @@ class showNextFont(ReporterPlugin):
 
                         if thisMasterIndex <= len(otherFont.masters):
                             otherFont.masterIndex = thisMasterIndex
-                        otherCurrentTab.scale = thisScale
+                        otherCurrentTab.scale = view_scale
                         otherCurrentTab.viewPort.origin.x = thisViewportX
                         otherCurrentTab.viewPort.origin.y = thisViewportY
                         otherCurrentTab.text = thisText
