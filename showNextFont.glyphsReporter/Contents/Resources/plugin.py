@@ -48,6 +48,7 @@ class showNextFont(ReporterPlugin):
                 "comGuidoferreyraShowNextFontSyncEditViews": False,
                 "comGuidoferreyraShowNextFontColor": nsc_arch(0.91, 0.32, 0.06, 0.45),
                 "comGuidoferreyraShowNextFontMatchAngle": False,
+                "comGuidoferreyraShowNextFontCenter": False,
             }
         )
 
@@ -86,6 +87,11 @@ class showNextFont(ReporterPlugin):
                 {
                     "title": "Match italic angle",
                     "key": "comGuidoferreyraShowNextFontMatchAngle",
+                    "type": "bool",
+                },
+                {
+                    "title": "Center layer horizontally",
+                    "key": "comGuidoferreyraShowNextFontCenter",
                     "type": "bool",
                 },
             ],
@@ -137,6 +143,13 @@ class showNextFont(ReporterPlugin):
                     tr.shearXBy_yBy_atCenter_(
                         tan(radians(slant)), 0, (0, half_x_height)
                     )
+
+            # Center width if requested
+            shift = 0
+            if Glyphs.defaults["comGuidoferreyraShowNextFontCenter"]:
+                shift = (layer.width - nextLayer.width * upm_scale) * 0.5
+                tr.translateXBy_yBy_(shift / upm_scale, 0)
+
             tr.concat()
 
             # Draw the main path with components
@@ -168,7 +181,7 @@ class showNextFont(ReporterPlugin):
                             tan(radians(slant)), 0, (0, half_x_height)
                         )
                     tr.concat()
-                self.drawSideBearings(layer, nextLayer, view_scale, upm_scale)
+                self.drawSideBearings(layer, nextLayer, view_scale, upm_scale, shift)
                 restore()
 
         except Exception as e:  # noqa: BLE001
@@ -181,14 +194,15 @@ class showNextFont(ReporterPlugin):
         nextLayer: "GSLayer",
         view_scale: float,
         upm_scale: float,
+        shift_x: float,
     ) -> None:
         try:
             line_width = 1 / view_scale
             color = Glyphs.colorDefaults[
                 "comGuidoferreyraShowNextFontColor"
             ].colorWithAlphaComponent_(0.7)
-            x0 = 0
-            x1 = nextLayer.width * upm_scale
+            x0 = shift_x
+            x1 = nextLayer.width * upm_scale + shift_x
             y0 = thisLayer.descender
             y1 = thisLayer.ascender
             self.drawLine(x0, y0, x0, y1, line_width, color)
