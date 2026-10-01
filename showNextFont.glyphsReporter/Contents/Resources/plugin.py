@@ -9,24 +9,83 @@
 #
 ###########################################################################################################
 
+from typing import TYPE_CHECKING, Any
+
 import objc
-from AppKit import NSAffineTransform, NSBezierPath, NSColor, NSRect
+from AppKit import NSAffineTransform, NSBezierPath, NSColor, NSKeyedArchiver, NSRect
 from GlyphsApp import OFFCURVE, Glyphs
 from GlyphsApp.plugins import ReporterPlugin
+
+if TYPE_CHECKING:
+    from GlyphsApp import GSLayer
+
+
+def nsc(r: float, g: float, b: float, a: float) -> NSColor:
+    return NSColor.colorWithCalibratedRed_green_blue_alpha_(r, g, b, a)
+
+
+def nsc_arch(r: float, g: float, b: float, a: float):
+    result, _err = (
+        NSKeyedArchiver.archivedDataWithRootObject_requiringSecureCoding_error_(
+            nsc(r, g, b, a), True, None
+        )
+    )
+    return result
 
 
 class showNextFont(ReporterPlugin):
     @objc.python_method
-    def settings(self):
+    def settings(self) -> None:
         self.menuName = Glyphs.localize({"en": "Next Font"})
 
-        # default fill setting:
-        Glyphs.registerDefault("com.guidoferreyra.showNextFont.fill", 0)
-        # default show nodes setting:
-        Glyphs.registerDefault("com.guidoferreyra.showNextFont.showNodes", 1)
+        Glyphs.registerDefaults(
+            {
+                "comGuidoferreyraShowNextFontFill": False,
+                "comGuidoferreyraShowNextFontShowNodes": True,
+                "comGuidoferreyraShowNextFontShowSidebearings": False,
+                "comGuidoferreyraShowNextFontSyncEditViews": False,
+                "comGuidoferreyraShowNextFontColor": nsc_arch(0.91, 0.32, 0.06, 0.45),
+            }
+        )
+
+        if Glyphs.versionNumber < 4.0:
+            return
+
+        # Glyphs 4: Make settings editable from the Advanced Preferences dialog
+        GSAdvancedPreferences = objc.lookUpClass("GSAdvancedPreferences")
+        GSAdvancedPreferences.sharedAdvancedPreferences().registerEntries_forCategory_(
+            [
+                {
+                    "title": "Fill next font",
+                    "key": "comGuidoferreyraShowNextFontFill",
+                    "type": "bool",
+                },
+                {
+                    "title": "Show nodes",
+                    "key": "comGuidoferreyraShowNextFontShowNodes",
+                    "type": "bool",
+                },
+                {
+                    "title": "Show sidebearings",
+                    "key": "comGuidoferreyraShowNextFontShowSidebearings",
+                    "type": "bool",
+                },
+                {
+                    "title": "Sync edit views",
+                    "key": "comGuidoferreyraShowNextFontSyncEditViews",
+                    "type": "bool",
+                },
+                {
+                    "title": "Fill color",
+                    "key": "comGuidoferreyraShowNextFontColor",
+                    "type": "color",
+                },
+            ],
+            "Show Next Font",
+        )
 
     @objc.python_method
-    def drawNextFont(self, layer):
+    def drawNextFont(self, layer: "GSLayer") -> None:
         if len(Glyphs.fonts) < 2:
             return
 
@@ -51,16 +110,10 @@ class showNextFont(ReporterPlugin):
 
             scale = thisFont.currentTab.scale
 
-            drawingColor = 0.91, 0.32, 0.06, 0.45
             # draw path AND components:
-            NSColor.colorWithCalibratedRed_green_blue_alpha_(*drawingColor).set()
+            Glyphs.colorDefaults["comGuidoferreyraShowNextFontColor"].set()
 
-            try:
-                thisBezierPathWithComponent = (
-                    nextLayer.copyDecomposedLayer().bezierPath()
-                )
-            except:  # noqa: E722
-                thisBezierPathWithComponent = nextLayer.copyDecomposedLayer().bezierPath
+            thisBezierPathWithComponent = nextLayer.completeBezierPath
 
             # Apply UPM scaling if needed
             scaleFactor = 1.0
@@ -74,35 +127,61 @@ class showNextFont(ReporterPlugin):
 
             # Draw the main path
             if thisBezierPathWithComponent:
-                if Glyphs.defaults["com.guidoferreyra.showNextFont.fill"]:
+                if Glyphs.defaults["comGuidoferreyraShowNextFontFill"]:
                     thisBezierPathWithComponent.fill()
                 else:
-                    drawingColor = 0.91, 0.32, 0.06, 0.9
-                    NSColor.colorWithCalibratedRed_green_blue_alpha_(
-                        *drawingColor
-                    ).set()
-                    thisBezierPathWithComponent.setLineWidth_(0)
+                    Glyphs.colorDefaults[
+                        "comGuidoferreyraShowNextFontColor"
+                    ].colorWithAlphaComponent_(0.9).set()
+                    thisBezierPathWithComponent.setLineWidth_(0)  # ?
                     thisBezierPathWithComponent.stroke()
 
-            # Draw nodes and handles if enabled
-            if Glyphs.defaults["com.guidoferreyra.showNextFont.showNodes"]:
-                self.drawNodesAndHandles(nextLayer, scaleFactor, scale)
+                # Draw nodes and handles if enabled
+                if Glyphs.defaults["comGuidoferreyraShowNextFontShowNodes"]:
+                    self.drawNodesAndHandles(nextLayer, scaleFactor, scale)
 
-        except Exception as e:
+            if Glyphs.defaults["comGuidoferreyraShowNextFontShowSidebearings"]:
+                self.drawSideBearings(layer, nextLayer, scaleFactor, scale)
+
+        except Exception as e:  # noqa: BLE001
             print(e)
 
     @objc.python_method
-    def drawNodesAndHandles(self, nextLayer, scaleFactor, scale):
+    def drawSideBearings(
+        self,
+        thisLayer: "GSLayer",
+        nextLayer: "GSLayer",
+        scaleFactor: float,
+        scale: float,
+    ) -> None:
         try:
-            oncurveColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(
-                0.91, 0.32, 0.06, 0.9
-            )
-            offcurveColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(
-                0.91, 0.32, 0.06, 0.7
-            )
-            handleLineColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(
-                0.91, 0.32, 0.06, 0.4
-            )
+            line_width = 1 / scale
+            color = Glyphs.colorDefaults[
+                "comGuidoferreyraShowNextFontColor"
+            ].colorWithAlphaComponent_(0.7)
+            x0 = 0
+            x1 = nextLayer.width * scaleFactor
+            y0 = thisLayer.descender * scaleFactor
+            y1 = thisLayer.ascender * scaleFactor
+            self.drawLine(x0, y0, x0, y1, line_width, color)
+            self.drawLine(x1, y0, x1, y1, line_width, color)
+        except Exception as e:  # noqa: BLE001
+            print(f"Error sidebearings: {e}")
+
+    @objc.python_method
+    def drawNodesAndHandles(
+        self, nextLayer: "GSLayer", scaleFactor: float, scale: float
+    ) -> None:
+        try:
+            oncurveColor = Glyphs.colorDefaults[
+                "comGuidoferreyraShowNextFontColor"
+            ].colorWithAlphaComponent_(0.9)
+            offcurveColor = Glyphs.colorDefaults[
+                "comGuidoferreyraShowNextFontColor"
+            ].colorWithAlphaComponent_(0.7)
+            handleLineColor = Glyphs.colorDefaults[
+                "comGuidoferreyraShowNextFontColor"
+            ].colorWithAlphaComponent_(0.4)
 
             nodeSize = 8 / scale
             handleLineWidth = 1 / scale
@@ -125,11 +204,13 @@ class showNextFont(ReporterPlugin):
                     else:
                         self.drawNode(x, y, nodeSize, oncurveColor)
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             print(f"Error drawing nodes and handles: {e}")
 
     @objc.python_method
-    def drawHandleLines(self, nodes, scaleFactor, lineWidth, color):
+    def drawHandleLines(
+        self, nodes, scaleFactor: float, lineWidth: float, color: NSColor
+    ) -> None:
         try:
             nodeCount = len(nodes)
             for i, node in enumerate(nodes):
@@ -156,11 +237,13 @@ class showNextFont(ReporterPlugin):
                             nextX = nextNode.position.x * scaleFactor
                             nextY = nextNode.position.y * scaleFactor
                             self.drawLine(x, y, nextX, nextY, lineWidth, color)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             print(f"Error drawing handle lines: {e}")
 
     @objc.python_method
-    def findAdjacentOnCurveNode(self, nodes, currentIndex, direction):
+    def findAdjacentOnCurveNode(
+        self, nodes, currentIndex: int, direction: int
+    ) -> int | None:
         """Find the nearest oncurve node in the given direction (1 for forward, -1 for backward)"""
         nodeCount = len(nodes)
         i = currentIndex
@@ -174,7 +257,7 @@ class showNextFont(ReporterPlugin):
         return None
 
     @objc.python_method
-    def drawNode(self, x, y, size, color):
+    def drawNode(self, x: float, y: float, size: float, color: NSColor) -> None:
         path = NSBezierPath.alloc().init()
         rect = NSRect((x - size / 2, y - size / 2), (size, size))
         ovalInRect = NSBezierPath.bezierPathWithOvalInRect_(rect)
@@ -183,7 +266,15 @@ class showNextFont(ReporterPlugin):
         path.fill()
 
     @objc.python_method
-    def drawLine(self, x1, y1, x2, y2, lineWidth, color):
+    def drawLine(
+        self,
+        x1: float,
+        y1: float,
+        x2: float,
+        y2: float,
+        lineWidth: float,
+        color: NSColor,
+    ) -> None:
         color.set()
         myPath = NSBezierPath.bezierPath()
         myPath.moveToPoint_((x1, y1))
@@ -192,18 +283,18 @@ class showNextFont(ReporterPlugin):
         myPath.stroke()
 
     @objc.python_method
-    def background(self, layer):
+    def background(self, layer: "GSLayer") -> None:
         self.drawNextFont(layer)
 
     @objc.python_method
-    def inactiveLayerBackground(self, layer):
+    def inactiveLayerBackground(self, layer: "GSLayer") -> None:
         self.drawNextFont(layer)
 
     @objc.python_method
-    def needsExtraMainOutlineDrawingForInactiveLayer_(self, layer):
+    def needsExtraMainOutlineDrawingForInactiveLayer_(self, layer: "GSLayer") -> bool:
         return True
 
-    def syncViews_(self, layer):
+    def syncViews_(self, layer: "GSLayer") -> None:
         try:
             layer = Glyphs.font.selectedLayers[0]
             thisFont = layer.parent.parent
@@ -230,18 +321,21 @@ class showNextFont(ReporterPlugin):
                         otherCurrentTab.viewPort.origin.y = thisViewportY
                         otherCurrentTab.text = thisText
                         otherCurrentTab.textCursor = thisTextCursor
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 Glyphs.showMacroWindow()
-                print("Sync Edit views Error (Inside Loop): %s" % e)
+                print(f"Sync Edit views Error (Inside Loop): {e}")
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             Glyphs.showMacroWindow()
-            print("Sync Edit views Error: %s" % e)
+            print(f"Sync Edit views Error: {e}")
 
     @objc.python_method
-    def conditionalContextMenus(self):
+    def conditionalContextMenus(self) -> list[dict[str, Any]]:
         # Empty list of context menu items
         contextMenus = []
+
+        if Glyphs.versionNumber >= 4.0:
+            return contextMenus
 
         contextMenus.append(
             {
@@ -251,7 +345,7 @@ class showNextFont(ReporterPlugin):
         )
 
         # Fill/Outline toggle
-        if not Glyphs.defaults["com.guidoferreyra.showNextFont.fill"]:
+        if not Glyphs.defaults["comGuidoferreyraShowNextFontFill"]:
             contextMenus.append(
                 {
                     "name": Glyphs.localize({"en": "Fill next font"}),
@@ -267,7 +361,7 @@ class showNextFont(ReporterPlugin):
             )
 
         # Show/Hide nodes toggle
-        if Glyphs.defaults["com.guidoferreyra.showNextFont.showNodes"]:
+        if Glyphs.defaults["comGuidoferreyraShowNextFontShowNodes"]:
             contextMenus.append(
                 {
                     "name": Glyphs.localize({"en": "Hide nodes"}),
@@ -294,15 +388,15 @@ class showNextFont(ReporterPlugin):
         # Return list of context menu items
         return contextMenus
 
-    def toggleFill(self):
-        Glyphs.defaults["com.guidoferreyra.showNextFont.fill"] = not Glyphs.defaults[
-            "com.guidoferreyra.showNextFont.fill"
+    def toggleFill(self) -> None:
+        Glyphs.defaults["comGuidoferreyraShowNextFontFill"] = not Glyphs.defaults[
+            "comGuidoferreyraShowNextFontFill"
         ]
 
-    def toggleNodes(self):
-        Glyphs.defaults[
-            "com.guidoferreyra.showNextFont.showNodes"
-        ] = not Glyphs.defaults["com.guidoferreyra.showNextFont.showNodes"]
+    def toggleNodes(self) -> None:
+        Glyphs.defaults["comGuidoferreyraShowNextFontShowNodes"] = not Glyphs.defaults[
+            "comGuidoferreyraShowNextFontShowNodes"
+        ]
 
     @objc.python_method
     def __file__(self):
