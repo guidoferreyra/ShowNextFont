@@ -97,8 +97,6 @@ class showNextFont(ReporterPlugin):
         if len(Glyphs.fonts) < 2:
             return
 
-        save()
-
         try:
             thisGlyph = layer.parent
             thisFont = thisGlyph.parent
@@ -121,6 +119,8 @@ class showNextFont(ReporterPlugin):
             view_scale = thisFont.currentTab.scale
 
             thisBezierPathWithComponent = nextLayer.completeBezierPath
+
+            save()
 
             # Apply UPM scaling if needed
             tr = NSAffineTransform.alloc().init()
@@ -155,13 +155,24 @@ class showNextFont(ReporterPlugin):
                 if Glyphs.defaults["comGuidoferreyraShowNextFontShowNodes"]:
                     self.drawNodesAndHandles(nextLayer, view_scale)
 
+            restore()
+
             if Glyphs.defaults["comGuidoferreyraShowNextFontShowSidebearings"]:
+                save()
+                if Glyphs.defaults["comGuidoferreyraShowNextFontMatchAngle"]:
+                    tr = NSAffineTransform.alloc().init()
+                    slant = layer.italicAngle
+                    if abs(slant) > 0.1:
+                        half_x_height = upm_scale * nextLayer.master.xHeight * 0.5
+                        tr.shearXBy_yBy_atCenter_(
+                            tan(radians(slant)), 0, (0, half_x_height)
+                        )
+                    tr.concat()
                 self.drawSideBearings(layer, nextLayer, view_scale, upm_scale)
+                restore()
 
         except Exception as e:  # noqa: BLE001
             print(e)
-
-        restore()
 
     @objc.python_method
     def drawSideBearings(
@@ -172,14 +183,14 @@ class showNextFont(ReporterPlugin):
         upm_scale: float,
     ) -> None:
         try:
-            line_width = 1 / view_scale / upm_scale
+            line_width = 1 / view_scale
             color = Glyphs.colorDefaults[
                 "comGuidoferreyraShowNextFontColor"
             ].colorWithAlphaComponent_(0.7)
             x0 = 0
-            x1 = nextLayer.width
-            y0 = thisLayer.descender / upm_scale
-            y1 = thisLayer.ascender / upm_scale
+            x1 = nextLayer.width * upm_scale
+            y0 = thisLayer.descender
+            y1 = thisLayer.ascender
             self.drawLine(x0, y0, x0, y1, line_width, color)
             self.drawLine(x1, y0, x1, y1, line_width, color)
         except Exception as e:  # noqa: BLE001
