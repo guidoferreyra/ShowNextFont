@@ -129,7 +129,7 @@ class showNextFont(ReporterPlugin):
             save()
 
             # Apply UPM scaling if needed
-            tr = NSAffineTransform.alloc().init()
+            tr = NSAffineTransform.new()
             upm_scale = 1.0
             if thisFont.upm != nextFont.upm:
                 upm_scale = thisFont.upm / nextFont.upm
@@ -150,7 +150,7 @@ class showNextFont(ReporterPlugin):
                 shift = (layer.width - nextLayer.width * upm_scale) * 0.5
                 tr.translateXBy_yBy_(shift / upm_scale, 0)
 
-            tr.concat()
+            thisBezierPathWithComponent.transformUsingAffineTransform_(tr)
 
             # Draw the main path with components
             if thisBezierPathWithComponent:
@@ -166,7 +166,7 @@ class showNextFont(ReporterPlugin):
 
                 # Draw nodes and handles if enabled
                 if Glyphs.defaults["comGuidoferreyraShowNextFontShowNodes"]:
-                    self.drawNodesAndHandles(nextLayer, view_scale)
+                    self.drawNodesAndHandles(nextLayer, view_scale, tr)
 
             restore()
 
@@ -211,7 +211,12 @@ class showNextFont(ReporterPlugin):
             print(f"Error sidebearings: {e}")
 
     @objc.python_method
-    def drawNodesAndHandles(self, nextLayer: "GSLayer", view_scale: float) -> None:
+    def drawNodesAndHandles(
+        self,
+        nextLayer: "GSLayer",
+        view_scale: float,
+        transform: NSAffineTransform,
+    ) -> None:
         try:
             oncurveColor = Glyphs.colorDefaults[
                 "comGuidoferreyraShowNextFontColor"
@@ -227,70 +232,30 @@ class showNextFont(ReporterPlugin):
             handleLineWidth = 1 / view_scale
 
             for path in nextLayer.paths:
-                nodes = path.nodes
-                if not nodes:
-                    continue
-
-                self.drawHandleLines(nodes, handleLineWidth, handleLineColor)
-
-                for node in nodes:
-                    x = node.position.x
-                    y = node.position.y
-
+                for node in path.nodes:
+                    pt = transform.transformPoint_(node.position)
+                    x = pt.x
+                    y = pt.y
                     if node.type == OFFCURVE:
                         self.drawNode(x, y, nodeSize * 0.6, offcurveColor)
                     else:
                         self.drawNode(x, y, nodeSize, oncurveColor)
+                        for adjacent in (node.nextNode, node.prevNode):
+                            if adjacent.type == OFFCURVE:
+                                pt = transform.transformPoint_(adjacent.position)
+                                self.drawLine(
+                                    x,
+                                    y,
+                                    pt.x,
+                                    pt.y,
+                                    handleLineWidth,
+                                    handleLineColor,
+                                )
+
+                    # self.drawHandleLines(nodes, handleLineWidth, handleLineColor)
 
         except Exception as e:  # noqa: BLE001
             print(f"Error drawing nodes and handles: {e}")
-
-    @objc.python_method
-    def drawHandleLines(self, nodes, lineWidth: float, color: NSColor) -> None:
-        try:
-            nodeCount = len(nodes)
-            for i, node in enumerate(nodes):
-                if node.type == OFFCURVE:
-                    x = node.position.x
-                    y = node.position.y
-
-                    prevOnCurve = self.findAdjacentOnCurveNode(nodes, i, -1)
-                    nextOnCurve = self.findAdjacentOnCurveNode(nodes, i, 1)
-
-                    if prevOnCurve is not None and nextOnCurve is not None:
-                        prevNode = nodes[prevOnCurve]
-                        nextNode = nodes[nextOnCurve]
-
-                        if i < nodeCount - 1 and nodes[i + 1].type == OFFCURVE:
-                            prevX = prevNode.position.x
-                            prevY = prevNode.position.y
-                            self.drawLine(prevX, prevY, x, y, lineWidth, color)
-                        elif i > 0 and nodes[i - 1].type == OFFCURVE:
-                            nextX = nextNode.position.x
-                            nextY = nextNode.position.y
-                            self.drawLine(x, y, nextX, nextY, lineWidth, color)
-                        else:
-                            nextX = nextNode.position.x
-                            nextY = nextNode.position.y
-                            self.drawLine(x, y, nextX, nextY, lineWidth, color)
-        except Exception as e:  # noqa: BLE001
-            print(f"Error drawing handle lines: {e}")
-
-    @objc.python_method
-    def findAdjacentOnCurveNode(
-        self, nodes, currentIndex: int, direction: int
-    ) -> int | None:
-        """Find the nearest oncurve node in the given direction (1 for forward, -1 for backward)"""
-        nodeCount = len(nodes)
-        i = currentIndex
-
-        while True:
-            i = (i + direction) % nodeCount
-            if i == currentIndex:  # We've looped back, no oncurve found
-                break
-            if nodes[i].type != OFFCURVE:
-                return i
-        return None
 
     @objc.python_method
     def drawNode(self, x: float, y: float, size: float, color: NSColor) -> None:
