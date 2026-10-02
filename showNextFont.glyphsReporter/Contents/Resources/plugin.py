@@ -52,7 +52,6 @@ class showNextFont(ReporterPlugin):
                 "comGuidoferreyraShowNextFontShowNodes": True,
                 "comGuidoferreyraShowNextFontShowAnchors": False,
                 "comGuidoferreyraShowNextFontShowSidebearings": False,
-                "comGuidoferreyraShowNextFontSyncEditViews": False,
                 "comGuidoferreyraShowNextFontColor": nsc_arch(*BASE_COLOR),
                 "comGuidoferreyraShowNextFontMatchAngle": False,
                 "comGuidoferreyraShowNextFontCenter": False,
@@ -66,6 +65,11 @@ class showNextFont(ReporterPlugin):
         GSAdvancedPreferences = objc.lookUpClass("GSAdvancedPreferences")
         GSAdvancedPreferences.sharedAdvancedPreferences().registerEntries_forCategory_(
             [
+                {
+                    "title": "Fill color",
+                    "key": "comGuidoferreyraShowNextFontColor",
+                    "type": "color",
+                },
                 {
                     "title": "Fill next font",
                     "key": "comGuidoferreyraShowNextFontFill",
@@ -85,16 +89,6 @@ class showNextFont(ReporterPlugin):
                     "title": "Show sidebearings",
                     "key": "comGuidoferreyraShowNextFontShowSidebearings",
                     "type": "bool",
-                },
-                {
-                    "title": "Sync edit views",
-                    "key": "comGuidoferreyraShowNextFontSyncEditViews",
-                    "type": "bool",
-                },
-                {
-                    "title": "Fill color",
-                    "key": "comGuidoferreyraShowNextFontColor",
-                    "type": "color",
                 },
                 {
                     "title": "Match italic angle",
@@ -381,53 +375,51 @@ class showNextFont(ReporterPlugin):
         # Empty list of context menu items
         contextMenus = []
 
-        if Glyphs.versionNumber >= 4.0:
-            return contextMenus
-
-        contextMenus.append(
-            {
-                "name": Glyphs.localize({"en": "‘Show Next Font’ Options:"}),
-                "action": None,
-            },
-        )
-
-        # Fill/Outline toggle
-        if not Glyphs.defaults["comGuidoferreyraShowNextFontFill"]:
+        if Glyphs.versionNumber < 4.0:
             contextMenus.append(
                 {
-                    "name": Glyphs.localize({"en": "Fill next font"}),
-                    "action": self.toggleFill,
-                },
-            )
-        else:
-            contextMenus.append(
-                {
-                    "name": Glyphs.localize({"en": "Outline next font"}),
-                    "action": self.toggleFill,
+                    "name": Glyphs.localize({"en": "‘Show Next Font’ Options:"}),
+                    "action": None,
                 },
             )
 
-        # Show/Hide nodes toggle
-        if Glyphs.defaults["comGuidoferreyraShowNextFontShowNodes"]:
-            contextMenus.append(
-                {
-                    "name": Glyphs.localize({"en": "Hide nodes"}),
-                    "action": self.toggleNodes,
-                },
-            )
-        else:
-            contextMenus.append(
-                {
-                    "name": Glyphs.localize({"en": "Show nodes"}),
-                    "action": self.toggleNodes,
-                },
-            )
+            # Fill/Outline toggle
+            if not Glyphs.defaults["comGuidoferreyraShowNextFontFill"]:
+                contextMenus.append(
+                    {
+                        "name": Glyphs.localize({"en": "Fill Next Font"}),
+                        "action": self.toggleFill,
+                    },
+                )
+            else:
+                contextMenus.append(
+                    {
+                        "name": Glyphs.localize({"en": "Outline Next Font"}),
+                        "action": self.toggleFill,
+                    },
+                )
+
+            # Show/Hide nodes toggle
+            if Glyphs.defaults["comGuidoferreyraShowNextFontShowNodes"]:
+                contextMenus.append(
+                    {
+                        "name": Glyphs.localize({"en": "Hide Nodes"}),
+                        "action": self.toggleNodes,
+                    },
+                )
+            else:
+                contextMenus.append(
+                    {
+                        "name": Glyphs.localize({"en": "Show Nodes"}),
+                        "action": self.toggleNodes,
+                    },
+                )
 
         # Execute only if layers are actually selected
         if Glyphs.font.selectedLayers:
             contextMenus.append(
                 {
-                    "name": Glyphs.localize({"en": "Sync edit views"}),
+                    "name": Glyphs.localize({"en": "Sync Edit Views"}),
                     "action": self.syncViews_,
                 }
             )
