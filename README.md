@@ -6,16 +6,42 @@ This plugin shows in a light orange colour the same glyph of another opened font
 
 ### How to use:
 
-Open two fonts and activate the plugin via **View>Show Next Font** menu item.
-The ammount of masters of the fonts should be the same, in case of difference the plugin shows the first master only.
+Open two Glyphs files and activate the plugin via **View>Show Next Font** menu item. If the amount of masters in the two files differs, only the first master of the next font is shown for any additional masters.
 
-Under the right click menu you can find a menu items for:
+### Configuration
+
+#### Glyphs 3
+
+Under the contextual menu you can find menu items for:
 
 - swap next font view between outline and fill mode.
 - show/hide next font nodes and handles
 - sync edit views across open fonts.
 
 ![](screen-nextfont2.png)
+
+Additional settings can be adjusted via the **Macro Panel.** Upgrade to Glyphs 4 to get a UI for those preferences.
+
+```py
+Glyphs.defaults["comGuidoferreyraShowNextFontShowAnchors"] = False
+Glyphs.defaults["comGuidoferreyraShowNextFontShowSidebearings"] = False
+Glyphs.defaults["comGuidoferreyraShowNextFontMatchAngle"] = False
+Glyphs.defaults["comGuidoferreyraShowNextFontCenter"] = False
+```
+
+#### Glyphs 4
+
+View options can be set under **Glyphs > Settings... > Advanced > Show Next Font.**
+
+- **Fill color:** Select the base color which is used for the filled glyph. Colors for the outlines, nodes, etc. are derived from it
+- **Fill next font:** Whether to show a filled glyph or just the outlines
+- **Show nodes:** Show the nodes and handles of the background glyph
+- **Show anchors:** Show anchors from the background glyph
+- **Show sidebearings:** Show the sidebearings of the background glyph as lines
+- **Match italic angle:** Show the background glyph slanted with the current master’s italic angle
+- **Center layer horizontally:** Show the background glyph centered instead of left-aligned
+
+Under the contextual menu you can find a menu item for syncing the edit views across open fonts.
 
 ### Installation:
 
