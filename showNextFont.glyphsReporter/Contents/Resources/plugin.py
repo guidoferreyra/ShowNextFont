@@ -22,6 +22,10 @@ if TYPE_CHECKING:
     from GlyphsApp import GSLayer
 
 
+def fallbackColor() -> NSColor:
+    return nsc(0.91, 0.32, 0.06, 0.45)
+
+
 def nsc(r: float, g: float, b: float, a: float) -> NSColor:
     return NSColor.colorWithCalibratedRed_green_blue_alpha_(r, g, b, a)
 
@@ -164,9 +168,10 @@ class showNextFont(ReporterPlugin):
                     Glyphs.colorDefaults["comGuidoferreyraShowNextFontColor"].set()
                     thisBezierPathWithComponent.fill()
                 else:
-                    Glyphs.colorDefaults[
-                        "comGuidoferreyraShowNextFontColor"
-                    ].colorWithAlphaComponent_(0.9).set()
+                    (
+                        Glyphs.colorDefaults["comGuidoferreyraShowNextFontColor"]
+                        or fallbackColor()
+                    ).colorWithAlphaComponent_(0.9).set()
                     thisBezierPathWithComponent.setLineWidth_(0)
                     thisBezierPathWithComponent.stroke()
 
@@ -207,9 +212,10 @@ class showNextFont(ReporterPlugin):
     ) -> None:
         try:
             line_width = 1 / view_scale
-            color = Glyphs.colorDefaults[
-                "comGuidoferreyraShowNextFontColor"
-            ].colorWithAlphaComponent_(0.7)
+            color = (
+                Glyphs.colorDefaults["comGuidoferreyraShowNextFontColor"]
+                or fallbackColor()
+            ).colorWithAlphaComponent_(0.7)
             x0 = shift_x
             x1 = nextLayer.width * upm_scale + shift_x
             y0 = thisLayer.descender
@@ -229,9 +235,10 @@ class showNextFont(ReporterPlugin):
         try:
             size = 8 / view_scale
             lineWidth = 1 / view_scale
-            Glyphs.colorDefaults[
-                "comGuidoferreyraShowNextFontColor"
-            ].colorWithAlphaComponent_(0.7).set()
+            (
+                Glyphs.colorDefaults["comGuidoferreyraShowNextFontColor"]
+                or fallbackColor()
+            ).colorWithAlphaComponent_(0.7).set()
             path = NSBezierPath.alloc().init()
             for anchor in nextLayer.anchors:
                 pt = transform.transformPoint_(anchor.position)
@@ -252,15 +259,18 @@ class showNextFont(ReporterPlugin):
         transform: NSAffineTransform,
     ) -> None:
         try:
-            oncurveColor = Glyphs.colorDefaults[
-                "comGuidoferreyraShowNextFontColor"
-            ].colorWithAlphaComponent_(0.9)
-            offcurveColor = Glyphs.colorDefaults[
-                "comGuidoferreyraShowNextFontColor"
-            ].colorWithAlphaComponent_(0.7)
-            handleLineColor = Glyphs.colorDefaults[
-                "comGuidoferreyraShowNextFontColor"
-            ].colorWithAlphaComponent_(0.4)
+            oncurveColor = (
+                Glyphs.colorDefaults["comGuidoferreyraShowNextFontColor"]
+                or fallbackColor()
+            ).colorWithAlphaComponent_(0.9)
+            offcurveColor = (
+                Glyphs.colorDefaults["comGuidoferreyraShowNextFontColor"]
+                or fallbackColor()
+            ).colorWithAlphaComponent_(0.7)
+            handleLineColor = (
+                Glyphs.colorDefaults["comGuidoferreyraShowNextFontColor"]
+                or fallbackColor()
+            ).colorWithAlphaComponent_(0.4)
 
             nodeSize = 8 / view_scale
             handleLineWidth = 1 / view_scale
