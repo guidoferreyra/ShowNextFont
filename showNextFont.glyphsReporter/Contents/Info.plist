@@ -13,9 +13,9 @@
 		<key>CFBundleName</key>
 		<string>showNextFont</string>
 		<key>CFBundleShortVersionString</key>
-		<string>1.8.0</string>
+		<string>2.0.0</string>
 		<key>CFBundleVersion</key>
-		<string>9</string>
+		<string>200</string>
 		<key>UpdateFeedURL</key>
 		<string>
 			https://raw.githubusercontent.com/guidoferreyra/ShowNextFont/master/showNextFont.glyphsReporter/Contents/Info.plist</string>
