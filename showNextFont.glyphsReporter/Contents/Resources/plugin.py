@@ -44,6 +44,7 @@ class showNextFont(ReporterPlugin):
             {
                 "comGuidoferreyraShowNextFontFill": False,
                 "comGuidoferreyraShowNextFontShowNodes": True,
+                "comGuidoferreyraShowNextFontShowAnchors": False,
                 "comGuidoferreyraShowNextFontShowSidebearings": False,
                 "comGuidoferreyraShowNextFontSyncEditViews": False,
                 "comGuidoferreyraShowNextFontColor": nsc_arch(0.91, 0.32, 0.06, 0.45),
@@ -67,6 +68,11 @@ class showNextFont(ReporterPlugin):
                 {
                     "title": "Show nodes",
                     "key": "comGuidoferreyraShowNextFontShowNodes",
+                    "type": "bool",
+                },
+                {
+                    "title": "Show anchors",
+                    "key": "comGuidoferreyraShowNextFontShowAnchors",
                     "type": "bool",
                 },
                 {
@@ -168,6 +174,9 @@ class showNextFont(ReporterPlugin):
                 if Glyphs.defaults["comGuidoferreyraShowNextFontShowNodes"]:
                     self.drawNodesAndHandles(nextLayer, view_scale, tr)
 
+            if Glyphs.defaults["comGuidoferreyraShowNextFontShowAnchors"]:
+                self.drawAnchors(nextLayer, view_scale, tr)
+
             restore()
 
             if Glyphs.defaults["comGuidoferreyraShowNextFontShowSidebearings"]:
@@ -209,6 +218,31 @@ class showNextFont(ReporterPlugin):
             self.drawLine(x1, y0, x1, y1, line_width, color)
         except Exception as e:  # noqa: BLE001
             print(f"Error sidebearings: {e}")
+
+    @objc.python_method
+    def drawAnchors(
+        self,
+        nextLayer: "GSLayer",
+        view_scale: float,
+        transform: NSAffineTransform,
+    ) -> None:
+        try:
+            size = 8 / view_scale
+            lineWidth = 1 / view_scale
+            Glyphs.colorDefaults[
+                "comGuidoferreyraShowNextFontColor"
+            ].colorWithAlphaComponent_(0.7).set()
+            path = NSBezierPath.alloc().init()
+            for anchor in nextLayer.anchors:
+                pt = transform.transformPoint_(anchor.position)
+                rect = NSRect((pt.x - size / 2, pt.y - size / 2), (size, size))
+                ovalInRect = NSBezierPath.bezierPathWithOvalInRect_(rect)
+                path.appendBezierPath_(ovalInRect)
+            path.setLineWidth_(lineWidth)
+            path.stroke()
+
+        except Exception as e:  # noqa: BLE001
+            print(f"Error anchors: {e}")
 
     @objc.python_method
     def drawNodesAndHandles(
