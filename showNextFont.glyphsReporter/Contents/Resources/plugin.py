@@ -21,9 +21,11 @@ from GlyphsApp.plugins import ReporterPlugin
 if TYPE_CHECKING:
     from GlyphsApp import GSLayer
 
+BASE_COLOR = (0.91, 0.32, 0.06, 0.45)
+
 
 def fallbackColor() -> NSColor:
-    return nsc(0.91, 0.32, 0.06, 0.45)
+    return nsc(*BASE_COLOR)
 
 
 def nsc(r: float, g: float, b: float, a: float) -> NSColor:
@@ -51,7 +53,7 @@ class showNextFont(ReporterPlugin):
                 "comGuidoferreyraShowNextFontShowAnchors": False,
                 "comGuidoferreyraShowNextFontShowSidebearings": False,
                 "comGuidoferreyraShowNextFontSyncEditViews": False,
-                "comGuidoferreyraShowNextFontColor": nsc_arch(0.91, 0.32, 0.06, 0.45),
+                "comGuidoferreyraShowNextFontColor": nsc_arch(*BASE_COLOR),
                 "comGuidoferreyraShowNextFontMatchAngle": False,
                 "comGuidoferreyraShowNextFontCenter": False,
             }
