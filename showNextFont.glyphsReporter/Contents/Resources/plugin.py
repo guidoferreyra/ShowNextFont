@@ -123,7 +123,7 @@ class showNextFont(ReporterPlugin):
 
             activeMasterIndex = masters.index(thisMaster)
 
-            if len(masters) != len(nextFontMasters):
+            if activeMasterIndex >= len(nextFontMasters):
                 nextLayer = nextGlyph.layers[0]
             else:
                 nextLayer = nextGlyph.layers[activeMasterIndex]
