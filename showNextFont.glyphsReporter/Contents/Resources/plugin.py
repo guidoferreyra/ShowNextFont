@@ -9,6 +9,7 @@
 #
 ###########################################################################################################
 
+from decimal import ROUND_HALF_UP, Decimal, DefaultContext, setcontext
 from math import radians, tan
 from typing import TYPE_CHECKING, Any
 
@@ -22,6 +23,9 @@ if TYPE_CHECKING:
     from GlyphsApp import GSLayer
 
 BASE_COLOR = (0.91, 0.32, 0.06, 0.45)
+
+DefaultContext.rounding = ROUND_HALF_UP
+setcontext(DefaultContext)
 
 
 def fallbackColor() -> NSColor:
@@ -180,7 +184,11 @@ class showNextFont(ReporterPlugin):
 
             restore()
 
-            if Glyphs.defaults["comGuidoferreyraShowNextFontShowSidebearings"]:
+            if Glyphs.defaults[
+                "comGuidoferreyraShowNextFontShowSidebearings"
+            ] and round(Decimal(layer.width)) != round(
+                Decimal(nextLayer.width * upm_scale)
+            ):
                 save()
                 if Glyphs.defaults["comGuidoferreyraShowNextFontMatchAngle"]:
                     tr = NSAffineTransform.alloc().init()
