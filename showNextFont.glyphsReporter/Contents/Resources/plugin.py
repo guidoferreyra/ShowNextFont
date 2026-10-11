@@ -165,7 +165,10 @@ class showNextFont(ReporterPlugin):
             # Draw the main path with components
             if thisBezierPathWithComponent:
                 if Glyphs.defaults["comGuidoferreyraShowNextFontFill"]:
-                    Glyphs.colorDefaults["comGuidoferreyraShowNextFontColor"].set()
+                    (
+                        Glyphs.colorDefaults["comGuidoferreyraShowNextFontColor"]
+                        or fallbackColor()
+                    ).set()
                     thisBezierPathWithComponent.fill()
                 else:
                     (
